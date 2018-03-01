@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Configuration Version="1.0">
+	<HomeSetting Header="" />
+	<AwardSetting TotalNum="169"/>
+	<ThirdPrize TotalNum="5" />
+	<SencondPrize TotalNum="10" />
+	<FirstPrize TotalNum="5" />
+	<SpecialPrize TotalNum="1" />
+	<AddThrPrize TotalNum="0"/>
+	<AddTwoPrize TotalNum="0"/>
+	<AddOnePrize TotalNum="0"/>
+	<AddSupPrize TotalNum="0"/>
+	<LuckyStyle UseBlueTooth="1" />
+	<AwardsStyle NeedBatch="0" />
+	<Lotterymode Mode="2" />
+</Configuration>

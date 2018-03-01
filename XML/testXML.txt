@@ -1,0 +1,104 @@
+void CEventFilter::Load()
+{
+	std::string strXmlPath;
+	CCSGlobalMethod::GetConfigurationDirPath(strXmlPath);
+	strXmlPath += CS_FILE_DEFAULT_EVENT;
+
+	// 获取当前语言
+	UINT uiLanguage = CCSOptionSettingsCache::Singleton()->GetGeneralUILanguage();
+	char pszLanguage[12] = {0};
+	sprintf(pszLanguage, "LID_%04X", uiLanguage);
+
+	CMarkup parser;
+	if (parser.Load(strXmlPath.c_str()))
+	{
+		CR_VERIFY(parser.FindElem("EventFilter"));
+		TString strVersion = parser.GetAttrib("Version");
+		CR_ASSERT(strVersion == "7.0");
+		CR_VERIFY(parser.IntoElem());
+		while (parser.FindElem())
+		{
+			CR_ASSERT(parser.GetTagName() == "Event");
+
+			TString strEventID = parser.GetAttrib("ID");
+			TFilteredEventInfo fei;
+
+			TString strLevel = parser.GetAttrib("Priority");
+			if (strLevel.size() > 0)
+			{
+				fei.ucLevel = (UCHAR)strtol(strLevel.c_str(), NULL, 10);
+			}
+
+			fei.strImageFile = parser.GetAttrib("Image");
+
+			fei.strSoundFile = parser.GetAttrib("Sound");
+
+			parser.IntoElem();
+
+			while (parser.FindElem())
+			{
+				TString strTag = parser.GetTagName();
+				if (strTag == "Type")
+				{
+					CR_VERIFY(parser.FindChildElem(pszLanguage));
+					fei.strType = parser.GetChildData();
+				}
+				else if (strTag == "Time")
+				{
+					fei.strTime = parser.GetData();
+				}
+				else if (strTag == "Description")
+				{
+					CR_VERIFY(parser.IntoElem());
+					while (parser.FindElem())
+					{
+						CR_ASSERT(parser.GetTagName() == "Line");
+
+						TDescElement de;
+						TString strSupportWrap = parser.GetAttrib("SupportWrap");
+						de.bWrapSupported = strtol(strSupportWrap.c_str(), NULL, 10);
+						CR_VERIFY(parser.IntoElem());
+						while (parser.FindElem())
+						{
+							TString strTag = parser.GetTagName();
+							if (strTag == "Name")
+							{
+								CR_VERIFY(parser.FindChildElem(pszLanguage));
+								de.strName = parser.GetChildData();
+							}
+							else
+							{
+								CR_ASSERT(strTag == "Value");
+								CR_VERIFY(parser.FindChildElem(pszLanguage));
+								de.strValue = parser.GetChildData();
+							}
+						}
+						fei.deaDescElement.push_back(de);
+						CR_VERIFY(parser.OutOfElem());
+					}
+					CR_VERIFY(parser.OutOfElem());
+				}
+				else if (strTag == "Source")
+				{
+					fei.strSource = parser.GetData();
+				}
+				else if (strTag == "Speech")
+				{
+					CR_VERIFY(parser.FindChildElem(pszLanguage));
+					fei.strSpeech = parser.GetChildData();
+				}
+				else
+				{
+					CR_ASSERT(FALSE);
+				}
+			}
+
+			m_mapID2Info.insert(EventID2InfoMap::value_type(strEventID, fei));
+			parser.OutOfElem();
+		}
+	}
+	else
+	{
+		CR_ASSERT(FALSE);
+	}
+}
